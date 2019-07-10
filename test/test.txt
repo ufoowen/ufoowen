@@ -1,0 +1,108 @@
+import configparser,unittest,time,BSTestRunner
+from selenium.webdriver.common.by import By
+from python_2.gf.Myunit import Star
+def ds():
+    class Log(object):
+        def __init__(self):
+            self.config = configparser.ConfigParser()
+            self.config.read('ini.txt',encoding='utf-8')
+
+        def test_1(self):
+            self.config.add_section('adb')
+            self.config.add_section('names')
+            self.config.add_section('ages')
+            self.config.add_section('dses')
+
+        def test_2_value(self):
+            self.config.set('adb','port','8090')
+            self.config.set('adb','name','buffer')
+            self.config.set('names','red_trouse','peasew')
+            self.config.set('ages','zhangsan','12')
+            self.config.set('ages','lisi','78')
+            self.config.set('dses','erd','896')
+            self.config.set('dses','ers','yuese')
+
+        def test3_write_1(self):
+            fd = open('ini.txt','w')
+            self.config.write(fd)
+            fd.close()
+
+    po = Log()
+    po.test_1()
+    po.test_2_value()
+    po.test3_write_1()
+def dr():
+    class Basepage:
+        def __init__(self,driver,url):
+            self.driver = driver
+            self.base_url = url
+
+        def _open(self,url):
+            url_ = self.base_url + url
+            self.driver.get(url_)
+            assert self.driver.current_url==url_,'did not on land %s'%(url_)
+
+        def open(self):
+            self._open(self.base_url)
+
+        def find_element(self,*loc):
+            return self.driver.find_element(*loc)
+
+
+    class PageLogin(Basepage):
+        url = '/news'
+        username_loc = (By.NAME,'username')
+        password_loc = (By.NAME,'password')
+        submited_loc = (By.NAME,'Submited')
+        def type_username(self,username):
+            self.find_element(*self.username_loc).clear()
+            self.find_element(*self.username_loc).send_keys(username)
+
+        def type_password(self,password):
+            self.find_element(*self.password_loc).clear()
+            self.find_element(*self.password_loc).send_keys(password)
+
+        def type_submited(self):
+            self.find_element(*self.submited_loc).click()
+
+        def testlogin(self,username,password):
+            self.open()
+            self.type_username(username)
+            self.type_password(password)
+            self.type_submited()
+
+        hint_pass_loc = (By.LINK_TEXT,'ÎÒµÄ¿Õ¼ä')
+        hint_fail_loc = (By.NAME,'username')
+
+        def hint_pass_loc1(self):
+            return self.find_element(*self.hint_pass_loc).text
+
+        def hint_failed_loc1(self):
+            return self.find_element(*self.hint_fail_loc).text
+
+    class TestCase(Star):
+        def test_01(self):
+            po = PageLogin(self.driver)
+            po.testlogin('521','urue')
+            self.assertEqual(po.hint_pass_loc1(),'users')
+
+        def test_02(self):
+            po=PageLogin(self.driver)
+            po.testlogin('ufoowen','25112')
+
+            self.assertEqual(po.hint_failed_loc1(),'passwrd')
+
+    kk = TestCase()
+    kk.test_01()
+    kk.test_02()
+    test_dir = '/test_case/'
+    report_dir = '/reports/'
+    discovery = unittest.defaultTestLoader.discover(test_dir,pattern='fd.py')
+    now = time.strptime("%Y_%d_%m %H_%M_%S")
+    files = report_dir+now+'/'+'test_t.html'
+    with open(files,'wb') as f:
+        ruunner = BSTestRunner.BSTestRunner(stream=f,title='over test',description='test report')
+        ruunner.run(discovery)
+
+if __name__ == '__main__':
+    ds()
